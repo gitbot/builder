@@ -168,57 +168,57 @@
           "Config" : {
             "files": {
               "/home/ubuntu/app/lib/conf/prod.js" : {
-                "content" : {{ contents('main/prod.js') }}
+                "content" : {{ contents('main/prod.js')|indent(20) }}
               }
             }
           },
           "Services" : {
             "files" : {
                 "/etc/cfn/cfn-credentials" : {
-                  "content" : {{ contents('main/aws/cred') }},
+                  "content" : {{ contents('main/aws/cred')|indent(20) }},
                   "mode"    : "000400",
                   "owner"   : "root",
                   "group"   : "root"
                 },
 
                 "/etc/cfn/cfn-hup.conf" : {
-                  "content" : {{ contents('main/aws/cfn-hup.conf') }},
+                  "content" : {{ contents('main/aws/cfn-hup.conf')|indent(20) }},
                   "mode"    : "000400",
                   "owner"   : "root",
                   "group"   : "root"
                 },
 
                 "/etc/cfn/cfn-updater" : {
-                  "content" : {{ contents('main/aws/updater') }},
+                  "content" : {{ contents('main/aws/updater')|indent(20) }},
                   "mode"    : "000700",
                   "owner"   : "root",
                   "group"   : "root"
                 },
 
                 "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
-                  "content": {{ contents('main/aws/reloader') }}
+                  "content": {{ contents('main/aws/reloader')|indent(20) }}
                 },
 
                 "/etc/nginx/sites-available/default" : {
-                  "content" : {{ contents('main/nginx/default') }},
+                  "content" : {{ contents('main/nginx/default')|indent(20) }},
                   "mode"   : "000755",
                   "owner"  : "root",
                   "group"  : "root"
                 },
                 "/etc/init/app.conf" : {
-                  "content" : {{ contents('main/upstart/app.conf') }},
+                  "content" : {{ contents('main/upstart/app.conf')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",
                   "group"  : "root"
                 },
                 "/etc/init/kue.conf" : {
-                  "content" : {{ contents('main/upstart/kue.conf') }},
+                  "content" : {{ contents('main/upstart/kue.conf')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",
                   "group"  : "root"
                 },
                 "/etc/monit/monitrc" : {
-                  "content" : {{ contents('main/monit/monitrc') }},
+                  "content" : {{ contents('main/monit/monitrc')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",
                   "group"  : "root"
@@ -242,7 +242,7 @@
         "InstanceType" : { "Ref" : "AppServerInstanceType" },
         "KeyName": { "Ref" : "KeyName" },
         "UserData": {
-            "Fn::Base64": {{ contents('main/aws/user-data') }}
+            "Fn::Base64": {{ contents('main/aws/user-data')|indent(14) }}
         }
       }
     },

@@ -1,7 +1,7 @@
 #!/bin/bash -v
 function error_exit
 {
-  cfn-signal -e 1 -r \"$1\" '{ "Ref" : "RedisServerWaitHandle" }'
+  cfn-signal -e 1 -r "$1" '{ "Ref" : "RedisServerWaitHandle" }'
   exit 1
 }
 apt-get -y install python-setuptools || error_exit 'Failed to install setuptools'

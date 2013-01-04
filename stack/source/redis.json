@@ -103,7 +103,7 @@
               },
 
               "/etc/haproxy/haproxy.cfg": {
-                "content": {{ contents('redis/haproxy.cfg') }},
+                "content": {{ contents('redis/haproxy.cfg')|indent(20) }},
                 "mode": "000644",
                 "owner": "root",
                 "group": "root"
@@ -126,7 +126,7 @@
         "InstanceType" : { "Ref" : "InstanceType" },
         "KeyName": { "Ref" : "KeyName" },
         "UserData": {
-          "Fn::Base64": {{ contents('redis/user-data') }}
+          "Fn::Base64": {{ contents('redis/user-data')|indent(14) }}
         }
       }
     }
