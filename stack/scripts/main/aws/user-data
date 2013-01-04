@@ -1,0 +1,23 @@
+#!/bin/bash -v
+function error_exit
+{
+  cfn-signal -e 1 -r \"$1\" '{ "Ref" : "AppServerWaitHandle" }'
+  exit 1
+}
+apt-get -y install python-setuptools || error_exit 'Failed to install setuptools'
+easy_install {{ cfntools }} || error_exit 'Failed to install cloudformation scripts'
+# Install the node js application
+cfn-init \
+      --stack { "Ref" : "AWS::StackName" } \
+      --resource AppServer \
+      --configset ALL \
+      --access-key { "Ref" : "AppUserKeys" } \
+      --secret-key {"Fn::GetAtt": ["AppUserKeys", "SecretAccessKey"]} \
+      --region { "Ref" : "AWS::Region" } || error_exit 'Failed to run cfn-init'
+cfn-hup || error_exit 'Failed to run cfn-hup'
+rm /etc/nginx/sites-enabled/default
+cd /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/default default
+/etc/init.d/nginx restart
+/etc/init.d/monit restart
+cfn-signal -e 0 -r 'Appserver configuration complete' '{ "Ref" : "AppServerWaitHandle" }'

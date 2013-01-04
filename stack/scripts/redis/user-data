@@ -1,0 +1,17 @@
+#!/bin/bash -v
+function error_exit
+{
+  cfn-signal -e 1 -r \"$1\" '{ "Ref" : "RedisServerWaitHandle" }'
+  exit 1
+}
+apt-get -y install python-setuptools || error_exit 'Failed to install setuptools'
+easy_install {{ cfntools }} || error_exit 'Failed to install cloudformation scripts'
+# Install redis and related
+cfn-init \
+     --stack { "Ref" : "AWS::StackName" } \
+     --resource RedisMaster \
+     --access-key { "Ref" : "RedisKeys" } \
+     --secret-key {"Fn::GetAtt": ["RedisKeys", "SecretAccessKey"]} \
+     --region { "Ref" : "AWS::Region" } || error_exit 'Failed to run cfn-init'
+
+cfn-signal -e 0 -r 'Redis Server configuration complete' '{ "Ref" : "RedisServerWaitHandle" }'

@@ -1,0 +1,149 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "Stack for deploying redis server for apartment.",
+
+  "Parameters" : {
+    "InstanceType" : {
+      "Description" : "Instance type for the redis server",
+      "Type" : "String",
+      "Default" : "t1.micro",
+      "AllowedValues" : {{ instances|json|indent(6) }},
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "RedisPort" : {
+      "Description" : "The port to listen for redis connections",
+      "Type" : "String"
+    },
+
+    "KeyName" : {
+      "Description" : "The EC2 Key Pair to allow SSH access to the instances",
+      "Type" : "String"
+    },
+
+     "ImageId" : {
+      "Description" : "The AMI for the redis server",
+      "Type" : "String"
+    }
+  },
+
+  "Resources" :  {
+    "RedisUser" : {
+      "Type" : "AWS::IAM::User",
+      "Properties" : {
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "root",
+          "PolicyDocument": { "Statement":[{
+            "Effect": "Allow",
+            "Action": [
+              "cloudformation:DescribeStackResource",
+              "sqs:ReceiveMessage",
+              "sqs:DeleteMessage",
+              "s3:*"
+            ],
+            "Resource": "*"
+          }]}
+        }]
+      }
+    },
+
+    "RedisServerWaitHandle" : {
+      "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+
+    "RedisServerWaitCondition" : {
+      "Type" : "AWS::CloudFormation::WaitCondition",
+      "DependsOn" : "RedisMaster",
+      "Properties" : {
+        "Handle"  : { "Ref" : "RedisServerWaitHandle" },
+        "Timeout" : "600"
+      }
+    },
+
+    "RedisKeys" : {
+      "Type" : "AWS::IAM::AccessKey",
+      "Properties" : {
+        "UserName" : {"Ref": "RedisUser"}
+      }
+    },
+
+   "SecurityGroup" : {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+          "GroupDescription" : "Security for Redis Server",
+          "SecurityGroupIngress" : [
+                  { "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0" },
+                  { "IpProtocol" : "tcp", "FromPort" : { "Ref" : "RedisPort" }, "ToPort" : { "Ref" : "RedisPort" }, "CidrIp" : "0.0.0.0/0" }]
+      }
+    },
+
+    "RedisMaster": {
+      "Type": "AWS::EC2::Instance",
+
+      "Metadata" : {
+        "Comment" : "Install redis master",
+        "AWS::CloudFormation::Init" : {
+          "config" : {
+            "packages" : {
+              "apt" : {
+                "haproxy" : [],
+                "redis-server" : []
+              }
+            },
+
+            "files" : {
+
+              "/etc/default/haproxy" : {
+                "content": { "Fn::Join": ["", [ "ENABLED=1\n" ]]},
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+
+              "/etc/haproxy/haproxy.cfg": {
+                "content": {{ contents('redis/haproxy.cfg') }},
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "services" : {
+              "sysvinit" : {
+                "redis-server" : { "enabled" : "true", "ensureRunning" : "true" },
+                "haproxy"   : { "enabled": "true", "ensureRunning": "true" }
+              }
+            }
+          }
+        }
+      },
+
+      "Properties": {
+        "SecurityGroups": [{ "Ref": "SecurityGroup" }],
+        "Tags" : [ { "Key" : "Name", "Value" : "Redis Master Server" } ],
+        "ImageId" : { "Ref" : "ImageId" },
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "KeyName": { "Ref" : "KeyName" },
+        "UserData": {
+          "Fn::Base64": {{ contents('redis/user-data') }}
+        }
+      }
+    }
+  },
+
+  "Outputs" : {
+    "MasterIP" : {
+      "Description" : "IP Address of the master redis server",
+      "Value" : { "Fn::GetAtt" : [ "RedisMaster", "PrivateIp" ] }
+    },
+    "MasterPublicIP" : {
+      "Description" : "Public IP Address of the master redis server",
+      "Value" : { "Fn::GetAtt" : [ "RedisMaster", "PublicIp" ] }
+    },
+    "MasterPublicDNS" : {
+      "Description" : "Public IP Address of the master redis server",
+      "Value" : { "Fn::GetAtt" : [ "RedisMaster", "PublicDnsName" ] }
+    }
+  }
+}

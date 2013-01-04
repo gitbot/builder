@@ -1,0 +1,8 @@
+#!/bin/bash -v
+cfn-init -s { "Ref" : "AWS::StackName" } \
+    -r AppServer \
+    -c ALL  \
+    --credential-file /etc/cfn/cfn-credentials \
+    --region { "Ref" : "AWS::Region" }
+monit restart all
+/etc/init.d/nginx restart

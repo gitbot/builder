@@ -1,0 +1,22 @@
+#!monit
+set logfile /var/log/monit_app.log
+set daemon 60
+
+set httpd port 2812 and
+      allow admin:monit
+
+check process app with pidfile "/var/run/app.pid"
+    start program = "/sbin/start app"
+    stop program = "/sbin/stop app"
+    if failed port 3000 protocol HTTP
+        request /ping
+        with timeout 5 seconds
+        then restart
+
+check process queue with pidfile "/var/run/queue.pid"
+    start program = "/sbin/start queue"
+    stop program  = "/sbin/stop queue"
+    if failed port 3001 protocol HTTP
+        request /ping
+        with timeout 5 seconds
+        then restart

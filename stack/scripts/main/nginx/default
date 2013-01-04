@@ -1,0 +1,46 @@
+upstream app_{ "Ref" : "Domain" }{
+  server 127.0.0.1:3000;
+}
+upstream kue_{ "Ref" : "Domain" }{
+  server 127.0.0.1:3000;
+}
+server {
+  server_name   ~^www\\.(?<domain>.+)$;
+  rewrite ^/(.*) http://$domain$1 permanent;
+}
+server {
+  listen 0.0.0.0:80;
+  server_name api.{ "Ref" : "Domain" };
+  access_log /var/log/nginx/api.{ "Ref" : "Domain" }.log;
+
+  location / {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-NginX-Proxy true;
+
+    proxy_pass http://app_{ "Ref" : "Domain" }/;
+    proxy_redirect off;
+  }
+}
+server {
+  listen 0.0.0.0:80;
+  server_name kue.{ "Ref" : "Domain" };
+  access_log /var/log/nginx/kue.{ "Ref" : "Domain" }.log;
+
+  location / {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-NginX-Proxy true;
+
+    proxy_pass http://kue_{ "Ref" : "Domain" }/;
+    proxy_redirect off;
+  }
+}
+server {
+  listen 0.0.0.0:80;
+  server_name { "Ref" : "Domain" };
+  root /home/ubuntu/web;
+  access_log /var/log/nginx/{ "Ref" : "Domain" }.log;
+}

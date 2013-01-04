@@ -1,0 +1,302 @@
+{
+
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "Stack for deploying gitbot.",
+
+  "Parameters" : {
+
+    "RedisStackURL" : {
+      "Description" : "The URL of the redis stack template",
+      "Type" : "String"
+    },
+
+    "AppServerInstanceType" : {
+      "Description" : "Instance type for the web server",
+      "Type" : "String",
+      "Default" : "t1.micro",
+      "AllowedValues" : {{ instances|json|indent(6) }},
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "RedisInstanceType" : {
+      "Description" : "Instance type for the redis server",
+      "Type" : "String",
+      "Default" : "t1.micro",
+      "AllowedValues" : {{ instances|json|indent(6) }},
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "RedisPort" : {
+      "Description" : "The host for the redis master db",
+      "Type" : "String",
+      "Default" : "1521"
+    },
+
+    "KeyName" : {
+      "Description" : "The EC2 Key Pair to allow SSH access to the instances",
+      "Type" : "String"
+    },
+
+    "SiteElasticIP" : {
+      "Description" : "The elastic ip for the app",
+      "Type" : "String"
+    },
+
+    "Domain" : {
+      "Description" : "The domain in which the app is being served",
+      "Type" : "String"
+    },
+
+    "GithubClientId" : {
+      "Description" : "The github oAuth client id for gitbot application",
+      "Type" : "String"
+    },
+
+    "GithubClientSecret" : {
+      "Description" : "The github oAuth client secret for gitbot application",
+      "Type" : "String"
+    },
+
+    "WebSource" : {
+      "Description" : "The source files for the gitbot website",
+      "Type" : "String"
+    },
+
+    "AppSource" : {
+      "Description" : "The source files for the gitbot application",
+      "Type" : "String"
+    }
+  },
+
+  "Mappings" : {
+    "AWSInstanceType2Arch" : {{ instanceToArch|json|indent(6) }},
+
+    "AWSRegionArch2AMI" : {{ regionArchToAMI|json|indent(6) }}
+  },
+
+  "Resources" :  {
+
+    "NodeSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable SSH access and port 80 access",
+        "SecurityGroupIngress" : [
+          { "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0" },
+          { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" }
+        ]
+      }
+    },
+
+    "AppUser" : {
+      "Type" : "AWS::IAM::User",
+      "Properties" : {
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "root",
+          "PolicyDocument": { "Statement":[{
+            "Effect": "Allow",
+            "Action": [
+              "cloudformation:DescribeStackResource",
+              "sqs:ReceiveMessage",
+              "sqs:DeleteMessage",
+              "s3:*"
+            ],
+            "Resource": "*"
+          }]}
+        }]
+      }
+    },
+
+    "AppUserKeys" : {
+      "Type" : "AWS::IAM::AccessKey",
+      "Properties" : {
+        "UserName" : {"Ref": "AppUser"}
+      }
+    },
+
+    "AppServer": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata" : {
+        "Comment" : "Install the app server",
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+              "ALL": ["Repos", "System", "App", "Config", "Services"]
+          },
+          "Repos" : {
+            "packages" : {
+              "apt" : {
+                "python-software-properties" : []
+              }
+            },
+            "commands" : {
+              "1-nodejs" : {
+                "command" : "add-apt-repository -y ppa:chris-lea/node.js"
+              },
+              "2-update" : {
+                "command" : "apt-get update"
+              }
+            }
+          },
+          "System" : {
+            "packages" : {
+              "apt" : {
+                "build-essential" : [],
+                "git" : [],
+                "libyaml-dev": [],
+                "nodejs" : [],
+                "npm" : [],
+                "nginx-light" : [],
+                "monit": []
+              }
+            }
+          },
+
+          "App" : {
+            "sources" : {
+              "/home/ubuntu/web": { "Ref" : "WebSource" },
+              "/home/ubuntu/app": { "Ref" : "AppSource" }
+            },
+
+            "commands"   : {
+              "1-setup" : {
+                "command" : "npm install",
+                "cwd" : "/home/ubuntu/app"
+              }
+            }
+          },
+          "Config" : {
+            "files": {
+              "/home/ubuntu/app/lib/conf/prod.js" : {
+                "content" : {{ contents('main/prod.js') }}
+              }
+            }
+          },
+          "Services" : {
+            "files" : {
+                "/etc/cfn/cfn-credentials" : {
+                  "content" : {{ contents('main/aws/cred') }},
+                  "mode"    : "000400",
+                  "owner"   : "root",
+                  "group"   : "root"
+                },
+
+                "/etc/cfn/cfn-hup.conf" : {
+                  "content" : {{ contents('main/aws/cfn-hup.conf') }},
+                  "mode"    : "000400",
+                  "owner"   : "root",
+                  "group"   : "root"
+                },
+
+                "/etc/cfn/cfn-updater" : {
+                  "content" : {{ contents('main/aws/updater') }},
+                  "mode"    : "000700",
+                  "owner"   : "root",
+                  "group"   : "root"
+                },
+
+                "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                  "content": {{ contents('main/aws/reloader') }}
+                },
+
+                "/etc/nginx/sites-available/default" : {
+                  "content" : {{ contents('main/nginx/default') }},
+                  "mode"   : "000755",
+                  "owner"  : "root",
+                  "group"  : "root"
+                },
+                "/etc/init/app.conf" : {
+                  "content" : {{ contents('main/upstart/app.conf') }},
+                  "mode"   : "000700",
+                  "owner"  : "root",
+                  "group"  : "root"
+                },
+                "/etc/init/kue.conf" : {
+                  "content" : {{ contents('main/upstart/kue.conf') }},
+                  "mode"   : "000700",
+                  "owner"  : "root",
+                  "group"  : "root"
+                },
+                "/etc/monit/monitrc" : {
+                  "content" : {{ contents('main/monit/monitrc') }},
+                  "mode"   : "000700",
+                  "owner"  : "root",
+                  "group"  : "root"
+                }
+            },
+            "services" : {
+              "sysvinit" : {
+                "nginx" : { "enabled" : "true", "ensureRunning" : "true" },
+                "monit" : { "enabled" : "true", "ensureRunning" : "true" }
+              }
+            }
+          }
+        }
+      },
+      "Properties": {
+        "SecurityGroups": [{ "Ref": "NodeSecurityGroup" }],
+        "Tags" : [ { "Key" : "Name", "Value" : "Node JS App Server" } ],
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "AppServerInstanceType" },
+                                          "Arch" ] } ] },
+        "InstanceType" : { "Ref" : "AppServerInstanceType" },
+        "KeyName": { "Ref" : "KeyName" },
+        "UserData": {
+            "Fn::Base64": {{ contents('main/aws/user-data') }}
+        }
+      }
+    },
+
+    "RedisServer" : {
+      "Type" : "AWS::CloudFormation::Stack",
+      "Properties" : {
+        "TemplateURL" : { "Ref" : "RedisStackURL" },
+        "Parameters" : {
+          "InstanceType" : { "Ref" : "RedisInstanceType" },
+          "KeyName" : { "Ref" : "KeyName" },
+          "RedisPort" : { "Ref" : "RedisPort" },
+          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "RedisInstanceType" },
+                                          "Arch" ] } ] }
+        }
+      }
+    },
+
+    "AppIPAssoc" : {
+      "Type" : "AWS::EC2::EIPAssociation",
+      "DependsOn" : "AppServer",
+      "Properties" : {
+        "InstanceId" : { "Ref" : "AppServer" },
+        "EIP" : { "Ref" : "SiteElasticIP" }
+      }
+    },
+
+    "AppServerWaitHandle" : {
+      "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+
+    "AppServerWaitCondition" : {
+      "Type" : "AWS::CloudFormation::WaitCondition",
+      "DependsOn" : "AppServer",
+      "Properties" : {
+        "Handle"  : { "Ref" : "AppServerWaitHandle" },
+        "Timeout" : "600"
+      }
+    }
+  },
+
+  "Outputs" : {
+    "RedisMasterPublicIP" : {
+      "Description" : "Public IP Address of the master redis server",
+      "Value" : { "Fn::GetAtt" : [ "RedisServer", "Outputs.MasterPublicIP" ] }
+    },
+    "RedisMasterPublicDNS" : {
+      "Description" : "Public DNS Name of the master redis server",
+      "Value" : { "Fn::GetAtt" : [ "RedisServer", "Outputs.MasterPublicDNS" ] }
+    },
+    "URL": {
+      "Description" : "The website url",
+      "Value" : { "Fn::Join" : ["", [ "http://", { "Ref" : "Domain" }]]}
+    }
+  }
+}

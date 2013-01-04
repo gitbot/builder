@@ -1,0 +1,2 @@
+AWSAccessKeyId={ "Ref" : "AppUserKeys" }
+AWSSecretKey={"Fn::GetAtt": ["AppUserKeys", "SecretAccessKey"]}
