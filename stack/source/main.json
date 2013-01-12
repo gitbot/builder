@@ -211,7 +211,7 @@
                   "owner"  : "root",
                   "group"  : "root"
                 },
-                "/etc/init/kue.conf" : {
+                "/etc/init/queue.conf" : {
                   "content" : {{ contents('main/upstart/kue.conf')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",

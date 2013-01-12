@@ -85,7 +85,25 @@
       "Metadata" : {
         "Comment" : "Install redis master",
         "AWS::CloudFormation::Init" : {
-          "config" : {
+          "configSets" : {
+            "ALL": ["Repos", "Server"]
+          },
+          "Repos" : {
+            "packages" : {
+              "apt" : {
+                "python-software-properties" : []
+              }
+            },
+            "commands" : {
+              "1-nodejs" : {
+                "command" : "add-apt-repository -y ppa:rwky/ppa"
+              },
+              "2-update" : {
+                "command" : "apt-get update"
+              }
+            }
+          },
+          "Server" : {
             "packages" : {
               "apt" : {
                 "haproxy" : [],

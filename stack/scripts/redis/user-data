@@ -10,6 +10,7 @@ easy_install {{ cfntools }} || error_exit 'Failed to install cloudformation scri
 cfn-init \
      --stack { "Ref" : "AWS::StackName" } \
      --resource RedisMaster \
+     --configset ALL \
      --access-key { "Ref" : "RedisKeys" } \
      --secret-key {"Fn::GetAtt": ["RedisKeys", "SecretAccessKey"]} \
      --region { "Ref" : "AWS::Region" } || error_exit 'Failed to run cfn-init'

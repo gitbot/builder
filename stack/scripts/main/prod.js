@@ -24,7 +24,7 @@ module.exports  = {
         url: 'http://kue.{ "Ref": "Domain" }'
     },
     socket: {
-        origins: '*:*, localhost:8181'
+        origins: '*:*, localhost:8181, { "Ref": "Domain"}'
     },
     auth: {
         clientId: '{ "Ref": "GithubClientId" }',

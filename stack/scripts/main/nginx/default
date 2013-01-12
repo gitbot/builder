@@ -2,7 +2,7 @@ upstream app_{ "Ref" : "Domain" }{
   server 127.0.0.1:3000;
 }
 upstream kue_{ "Ref" : "Domain" }{
-  server 127.0.0.1:3000;
+  server 127.0.0.1:3001;
 }
 server {
   server_name   ~^www\\.(?<domain>.+)$;

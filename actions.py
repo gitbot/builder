@@ -13,5 +13,5 @@ def all(data):
     builder.publish(data, push_www=True, push_app=True)
 
 
-def update(data):
+def refresh(data):
     builder.publish(data, push_www=False, push_app=False)

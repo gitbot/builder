@@ -1,5 +1,5 @@
 [cfn-auto-reloader-hook]
 triggers=post.update
-path=Resources.AppServer.Metadata.AWS::CloudFormation::Init.App.Sources
+path=Resources.AppServer.Metadata.AWS::CloudFormation::Init
 action=/etc/cfn/cfn-updater
 runas=root

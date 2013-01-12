@@ -1,5 +1,6 @@
 from fswrap import File, Folder
 from gitbot import stack
+from gitbot.conf import ConfigDict
 from gitbot.lib import hyde
 from gitbot.lib.s3 import Bucket
 from gitbot.lib.git import Tree
@@ -9,26 +10,47 @@ import yaml
 def pull(source, repo, branch):
     tree = Tree(source, repo=repo, branch=branch)
     tree.clone(tip_only=True)
+    return tree.get_revision()
 
 
 def __upload(proj, repo, branch, data, maker, force=True):
-    root = Folder(data.root or '~')
-    source = root.child_folder('src').child_folder(proj)
-    dist = root.child_folder('dist')
-    b = Bucket(data.bucket)
-    b.make()
-    key_folder = Folder(data.project).child_folder(branch)
-    zippath = dist.child_file(proj + '.zip')
-    key_path = key_folder.child(zippath.name)
-    key = b.bucket.get_key(key_path)
-    if force or not key:
-        target = dist.child_folder(proj)
-        pull(source, repo, branch)
-        target.make()
-        maker(source, target)
-        target.zip(zippath.path)
-        b.add_file(zippath, target_folder=key_folder.path)
-        key = b.bucket.get_key(key_folder.child(zippath.name))
+    root, source, dist = (None, None, None)
+    try:
+        root = Folder(data.root or '~')
+        source = root.child_folder('src')
+        source.make()
+        source = source.child_folder(proj)
+        dist = root.child_folder('dist')
+        b = Bucket(data.bucket)
+        b.make()
+        key_folder = Folder(proj).child_folder(branch)
+        zippath = dist.child_file(proj + '.zip')
+        key = None
+        if not force:
+            tree = Tree(source, repo=repo, branch=branch)
+            try:
+                sha = tree.get_revision()
+            except:
+                pass
+            else:
+                key_folder = key_folder.child_folder(sha)
+                key_path = key_folder.child(zippath.name)
+                key = b.bucket.get_key(key_path)
+        if force or not key:
+            sha = pull(source, repo, branch)
+            key_folder = key_folder.child_folder(sha)
+            target = dist.child_folder(proj)
+            target.make()
+            maker(source, target)
+            target.zip(zippath.path)
+            b.add_file(zippath, target_folder=key_folder.path)
+            key = b.bucket.get_key(key_folder.child(zippath.name))
+    finally:
+        if source:
+            source.delete()
+        if dist:
+            dist.delete()
+
     return key.generate_url(30000)
 
 
@@ -52,6 +74,7 @@ def upload_app(data, force=True):
 
 
 def publish(data, push_www=True, push_app=False):
+    data = ConfigDict(data)
     www_archive = upload_www(data, push_www)
     app_archive = upload_app(data, push_app)
     config_file = File(File(__file__).parent.child('stack/gitbot.yaml'))
