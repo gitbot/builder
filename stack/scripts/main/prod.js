@@ -4,7 +4,7 @@ module.exports  = {
     staging: false,
     logLevel: 'info',
     site: 'http://{ "Ref": "Domain" }',
-    hookReceiver: 'http://api.{ "Ref": "Domain" }/hooks',
+    hookReceiver: 'http://api.{ "Ref": "Domain" }/hooks/{project}/action/{event}',
     db: {
         host: '{ "Fn::GetAtt": ["RedisServer", "Outputs.MasterIP"] }',
         port: '{ "Ref" : "RedisPort" }'

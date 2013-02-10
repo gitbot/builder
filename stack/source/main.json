@@ -146,6 +146,7 @@
                 "libyaml-dev": [],
                 "nodejs" : [],
                 "npm" : [],
+                "haproxy" : [],
                 "nginx-light" : [],
                 "monit": []
               }
@@ -199,6 +200,20 @@
                   "content": {{ contents('main/aws/reloader')|indent(20) }}
                 },
 
+                "/etc/default/haproxy" : {
+                    "content": { "Fn::Join": ["", [ "ENABLED=1\n" ]]},
+                    "mode": "000644",
+                    "owner": "root",
+                    "group": "root"
+                },
+
+                "/etc/haproxy/haproxy.cfg": {
+                    "content": {{ contents('main/haproxy/haproxy.cfg')|indent(20) }},
+                    "mode": "000644",
+                    "owner": "root",
+                    "group": "root"
+                },
+
                 "/etc/nginx/sites-available/default" : {
                   "content" : {{ contents('main/nginx/default')|indent(20) }},
                   "mode"   : "000755",
@@ -226,6 +241,7 @@
             },
             "services" : {
               "sysvinit" : {
+                "haproxy" : { "enabled": "true", "ensureRunning": "true" },
                 "nginx" : { "enabled" : "true", "ensureRunning" : "true" },
                 "monit" : { "enabled" : "true", "ensureRunning" : "true" }
               }
@@ -280,7 +296,7 @@
       "DependsOn" : "AppServer",
       "Properties" : {
         "Handle"  : { "Ref" : "AppServerWaitHandle" },
-        "Timeout" : "600"
+        "Timeout" : "1000"
       }
     }
   },

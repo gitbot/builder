@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
 
-  "Description" : "Stack for deploying redis server for apartment.",
+  "Description" : "Stack for deploying redis server for gitbot.",
 
   "Parameters" : {
     "InstanceType" : {
@@ -130,7 +130,7 @@
             "services" : {
               "sysvinit" : {
                 "redis-server" : { "enabled" : "true", "ensureRunning" : "true" },
-                "haproxy"   : { "enabled": "true", "ensureRunning": "true" }
+                "haproxy" : { "enabled": "true", "ensureRunning": "true" }
               }
             }
           }

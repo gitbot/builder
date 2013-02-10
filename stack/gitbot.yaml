@@ -38,20 +38,20 @@ context:
           Arch: '64'
     regionArchToAMI:
         ap-northeast-1:
-          '32': 'ami-eaa719eb'
-          '64': 'ami-eca719ed'
+          '32': 'ami-55b03454'
+          '64': 'ami-57b03456'
         ap-southeast-1:
-          '32': 'ami-f8fcbcaa'
-          '64': 'ami-fefcbcac'
+          '32': 'ami-782c612a'
+          '64': 'ami-7e2c612c'
         eu-west-1:
-          '32': 'ami-3965664d'
-          '64': 'ami-3b65664f'
+          '32': 'ami-26414852'
+          '64': 'ami-20414854'
         us-east-1:
-          '32': 'ami-9878c0f1'
-          '64': 'ami-9c78c0f5'
+          '32': 'ami-0f45d266'
+          '64': 'ami-0145d268'
         us-west-1:
-          '32': 'ami-b94f69fc'
-          '64': 'ami-bb4f69fe'
+          '32': 'ami-3cd8fb79'
+          '64': 'ami-3ed8fb7b'
 source_dir: source
 source_patterns: '*.json'
 output_dir: out

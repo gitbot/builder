@@ -6,39 +6,16 @@ from gitbot.util import getLoggerWithConsoleHandler
 import yaml
 
 
-logger = getLoggerWithConsoleHandler('gitbot-builder')
+logger = getLoggerWithConsoleHandler('gitbot.builder')
 
 
 class Engine(Application):
-
-    def __init__(self, raise_exceptions=False):
-        self.raise_exceptions = raise_exceptions
-        super(Engine, self).__init__()
-
-    def run(self, args=None):
-        """
-        The engine entry point.
-        """
-
-        # Catch any errors thrown and log the message.
-
-        try:
-            super(Engine, self).run(args)
-        except Exception, e:
-            if self.raise_exceptions:
-                raise
-            elif self.__parser__:
-                self.__parser__.error(e.message)
-            else:
-                logger.error(e.message)
-                return -1
 
     @command(description='gitbot-builder - Create or update a gitbot stack',
         epilog='Use %(prog)s {command} -h to get help on individual commands')
     @true('-v', '--verbose', help="Show detailed information in console")
     @version('--version', version='%(prog)s ' + __version__)
     def main(self, args):
-        print 'args=', args
         pass
 
     @subcommand('www',

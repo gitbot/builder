@@ -57,7 +57,7 @@ def __upload(proj, repo, branch, data, maker, force=True):
 def upload_www(data, force=True):
 
     def maker(source, target):
-        hyde.gen(source, data, target=target.path)
+        hyde.gen(source, ConfigDict(dict(data=data)), target=target.path)
 
     return __upload('www', data.www_repo, data.www_branch, data, maker, force)
 
