@@ -12,6 +12,31 @@ def pull(source, repo, branch):
     tree.clone(tip_only=True)
     return tree.get_revision()
 
+def get_worker_outputs(data):
+    
+    worker_stack_name = data.worker_stack_name or 'gitbot-worker'
+    region = data.region or 'us-east-1'
+    def create_worker_stack():
+        # On error, create stack
+        root = Folder(data.root or '~')
+        source = root.child_folder('src')
+        source.make()
+        repo = data.worker_repo or 'git://github.com/gitbot/worker.git'
+        branch = data.worker_branch or 'master'
+
+        #   1. Pull worker repo
+        pull(source, repo, branch)
+
+        #   2. Call gitbot.stack.publish with 'gitbot.yaml'
+        config = yaml.load(source.child_file('gitbot.yaml').read_all())
+        stack.publish_stack(config, wait=True)
+        return stack.get_outputs(worker_stack_name, region)
+
+    result = stack.get_outputs(worker_stack_name, region)
+    if not result:
+        return create_worker_stack()
+    return result
+
 
 def __upload(proj, repo, branch, data, maker, force=True):
     root, source, dist = (None, None, None)
@@ -82,6 +107,12 @@ def publish(data, push_www=True, push_app=False):
     config['file_path'] = config_file.path
     params = data.get('stack_params', dict())
     params.update(dict(AppSource=app_archive, WebSource=www_archive))
+    worker_params = get_worker_outputs(data)
+    params.update(dict(
+        WorkerQueueURL=worker_params['QueueURL'],
+        ManagerAccessKey=worker_params['ManagerKey'],
+        ManagerSecretKey=worker_params['ManagerSecret']
+    ))
     config['data'] = data
     stack.publish_stack(config,
                         params=params,

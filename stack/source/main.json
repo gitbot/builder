@@ -66,6 +66,21 @@
     "AppSource" : {
       "Description" : "The source files for the gitbot application",
       "Type" : "String"
+    },
+
+    "WorkerQueueURL" : {
+      "Description" : "The URL for the Worker SQS queue",
+      "Type" : "String"
+    },
+
+    "ManagerAccessKey" : {
+      "Description" : "The AWS Access Key for the Queue Manager User",
+      "Type" : "String"
+    },
+
+    "ManagerSecretKey" : {
+      "Description" : "The AWS Secret Key for the Queue Manager User",
+      "Type" : "String"
     }
   },
 

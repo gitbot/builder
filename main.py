@@ -33,7 +33,7 @@ class Engine(Application):
         actions.app(data)
 
     @subcommand('all',
-        help='Generates and pushes the both projects.')
+        help='Generates and pushes both the projects.')
     @store('-c', '--config', default='data.yaml', help="Config file")
     def all(self, args):
         data = yaml.load(File(args.config).read_all())

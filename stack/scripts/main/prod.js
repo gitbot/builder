@@ -5,6 +5,7 @@ module.exports  = {
     logLevel: 'info',
     site: 'http://{ "Ref": "Domain" }',
     hookReceiver: 'http://api.{ "Ref": "Domain" }/hooks/{project}/action/{event}',
+    statusReceiver: 'http://api.{ "Ref": "Domain" }/job/{jobId}/status',
     db: {
         host: '{ "Fn::GetAtt": ["RedisServer", "Outputs.MasterIP"] }',
         port: '{ "Ref" : "RedisPort" }'
@@ -29,5 +30,11 @@ module.exports  = {
     auth: {
         clientId: '{ "Ref": "GithubClientId" }',
         clientSecret: '{ "Ref": "GithubClientSecret" }'
+    },
+    worker: {
+        region: '{ "Ref": "AWS::Region" }',
+        queueUrl: '{ "Ref": "WorkerQueueURL" }',
+        managerKey: '{ "Ref": "ManagerAccessKey" }',
+        managerSecret: '{ "Ref": "ManagerSecretKey" }'
     }
 };
