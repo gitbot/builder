@@ -21,6 +21,7 @@ def get_worker_outputs(data):
         root = Folder(data.root or '~')
         source = root.child_folder('src')
         source.make()
+        source = source.child_folder('worker')
         repo = data.worker_repo or 'git://github.com/gitbot/worker.git'
         branch = data.worker_branch or 'master'
 
@@ -28,8 +29,7 @@ def get_worker_outputs(data):
         pull(source, repo, branch)
 
         #   2. Call gitbot.stack.publish with 'gitbot.yaml'
-        config = yaml.load(source.child_file('gitbot.yaml').read_all())
-        stack.publish_stack(config, wait=True)
+        stack.publish_stack(source.child_file('gitbot.yaml'), wait=True)
         return stack.get_outputs(worker_stack_name, region)
 
     result = stack.get_outputs(worker_stack_name, region)
