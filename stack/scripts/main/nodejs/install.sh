@@ -1,0 +1,1 @@
+./configure && make && checkinstall --install=yes --pkgname=nodejs --pkgversion { "Ref": "NodeJSVersion" } --default

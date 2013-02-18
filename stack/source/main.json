@@ -6,6 +6,12 @@
 
   "Parameters" : {
 
+    "NodeJSVersion" : {
+      "Description" : "The Node JS version to use.",
+      "Type" : "String",
+      "Default": "0.8.20"
+    },
+
     "RedisStackURL" : {
       "Description" : "The URL of the redis stack template",
       "Type" : "String"
@@ -136,35 +142,49 @@
         "Comment" : "Install the app server",
         "AWS::CloudFormation::Init" : {
           "configSets" : {
-              "ALL": ["Repos", "System", "App", "Config", "Services"]
+              "ALL": ["Repos", "System", "NodeJS", "App", "Config", "Services"]
           },
           "Repos" : {
-            "packages" : {
-              "apt" : {
-                "python-software-properties" : []
-              }
-            },
             "commands" : {
-              "1-nodejs" : {
-                "command" : "add-apt-repository -y ppa:chris-lea/node.js"
-              },
-              "2-update" : {
-                "command" : "apt-get update"
-              }
+                "1-update" : {
+                    "command" : "apt-get update"
+                }
             }
           },
+
           "System" : {
             "packages" : {
               "apt" : {
-                "build-essential" : [],
+                "python-software-properties" : [],
+                "libssl-dev" : [],
+                "pkg-config" : [], 
+                "build-essential" : [], 
+                "gcc" : [],
+                "g++" : [],
+                "checkinstall" : [],
                 "git" : [],
                 "libyaml-dev": [],
-                "nodejs" : [],
-                "npm" : [],
                 "haproxy" : [],
                 "nginx-light" : [],
                 "monit": []
               }
+            }
+          },
+
+          "NodeJS" : {
+            "sources" : {
+              "/home/ubuntu/src": {{ contents('main/nodejs/source.txt', append_line_break=False)|indent(16) }}
+            },
+
+            "commands" : {
+                "1-install": {
+                  "command" : {{ contents('main/nodejs/install.sh', append_line_break=False)|indent(20) }},
+                  "cwd": {{ contents('main/nodejs/cwd.txt', append_line_break=False)|indent(20) }}
+                },
+                "2-cleanup": {
+                    "command" : "rm -rf src",
+                    "cwd": "home/ubuntu"
+                }
             }
           },
 
