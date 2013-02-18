@@ -16,11 +16,7 @@ def get_worker_outputs(data):
     
     worker_stack_name = data.worker_stack_name or 'gitbot-worker'
     region = data.region or 'us-east-1'
-    def create_worker_stack():
-        # On error, create stack
-        root = Folder(data.root or '~')
-        source = root.child_folder('src')
-        source.make()
+    def create_worker_stack(source):
         source = source.child_folder('worker')
         repo = data.worker_repo or 'git://github.com/gitbot/worker.git'
         branch = data.worker_branch or 'master'
@@ -34,7 +30,15 @@ def get_worker_outputs(data):
 
     result = stack.get_outputs(worker_stack_name, region)
     if not result:
-        return create_worker_stack()
+        try:
+            # On error, create stack
+            root = Folder(data.root or '~')
+            source = root.child_folder('src')
+            source.make()
+            result = create_worker_stack(source)
+        finally:
+            source.delete()
+
     return result
 
 
