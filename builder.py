@@ -112,6 +112,8 @@ def publish(data, push_www=True, push_app=False):
     params = data.get('stack_params', dict())
     params.update(dict(AppSource=app_archive, WebSource=www_archive))
     worker_params = get_worker_outputs(data)
+    if not worker_params or 'QueueURL' not in worker_params:
+        raise Exception('Failed to create the worker stack')
     params.update(dict(
         WorkerQueueURL=worker_params['QueueURL'],
         ManagerAccessKey=worker_params['ManagerKey'],
