@@ -1,3 +1,4 @@
+from boto.exception import BotoServerError
 from fswrap import File, Folder
 from gitbot import stack
 from gitbot.conf import ConfigDict
@@ -7,40 +8,43 @@ from gitbot.lib.git import Tree
 import yaml
 
 
-def pull(source, repo, branch):
-    tree = Tree(source, repo=repo, branch=branch)
-    tree.clone(tip_only=True)
-    return tree.get_revision()
-
 def get_worker_outputs(data):
-    
-    worker_stack_name = data.worker_stack_name or 'gitbot-worker'
-    region = data.region or 'us-east-1'
-    def create_worker_stack(source):
+    result = None
+    try:
+        worker_stack_name = data.worker_stack_name or 'gitbot-worker'
+        region = data.region or 'us-east-1'
+        root = Folder(data.root or '~')
+        source = root.child_folder('src')
+        source.make()
         source = source.child_folder('worker')
         repo = data.worker_repo or 'git://github.com/gitbot/worker.git'
         branch = data.worker_branch or 'master'
 
         #   1. Pull worker repo
-        pull(source, repo, branch)
+        tree = Tree(source, repo, branch)
+        tree.clone(tip_only=True)
 
         #   2. Call gitbot.stack.publish with 'gitbot.yaml'
         stack.publish_stack(source.child_file('gitbot.yaml'), wait=True)
-        return stack.get_outputs(worker_stack_name, region)
+        result = stack.get_outputs(worker_stack_name, region)
+    except Exception, e:
+        print repr(e)
+        raise
+    finally:
+        source.delete()
+        return result 
 
-    result = stack.get_outputs(worker_stack_name, region)
-    if not result:
-        try:
-            # On error, create stack
-            root = Folder(data.root or '~')
-            source = root.child_folder('src')
-            source.make()
-            result = create_worker_stack(source)
-        finally:
-            source.delete()
 
-    return result
-
+def check_revision_already_published(proj, bucket_name, tree):
+    b = Bucket(bucket_name)
+    if not b.connect():
+        return None
+    
+    sha = tree.get_revision_remote()
+    key_folder = Folder(proj).child_folder(tree.branch_name)
+    key_folder = key_folder.child_folder(sha)
+    key_path = key_folder.child(proj + '.zip')
+    return b.bucket.get_key(key_path)
 
 def __upload(proj, repo, branch, data, maker, force=True):
     root, source, dist = (None, None, None)
@@ -50,23 +54,18 @@ def __upload(proj, repo, branch, data, maker, force=True):
         source.make()
         source = source.child_folder(proj)
         dist = root.child_folder('dist')
-        b = Bucket(data.bucket)
-        b.make()
-        key_folder = Folder(proj).child_folder(branch)
-        zippath = dist.child_file(proj + '.zip')
+        tree = Tree(source, repo=repo, branch=branch)
         key = None
-        if not force:
-            tree = Tree(source, repo=repo, branch=branch)
-            try:
-                sha = tree.get_revision()
-            except:
-                pass
-            else:
-                key_folder = key_folder.child_folder(sha)
-                key_path = key_folder.child(zippath.name)
-                key = b.bucket.get_key(key_path)
-        if force or not key:
-            sha = pull(source, repo, branch)
+        if not force: 
+            key = check_revision_already_published(proj, data.bucket, tree)
+
+        if not key:
+            b = Bucket(data.bucket)
+            b.make()
+            key_folder = Folder(proj).child_folder(branch)
+            zippath = dist.child_file(proj + '.zip')
+            tree.clone(tip_only=True)
+            sha = tree.get_revision(short=False)
             key_folder = key_folder.child_folder(sha)
             target = dist.child_folder(proj)
             target.make()
