@@ -123,3 +123,12 @@ def publish(data, push_www=True, push_app=False):
                         params=params,
                         debug=True,
                         wait=True)
+
+def validate(data):
+    data = ConfigDict(data)
+    config_file = File(File(__file__).parent.child('stack/gitbot.yaml'))
+    config = yaml.load(config_file.read_all())
+    config['file_path'] = config_file.path
+    stack.validate_stack(config)
+
+

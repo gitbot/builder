@@ -1,5 +1,5 @@
 #!monit
-set logfile /var/log/monit_app.log
+set logfile /var/log/monit_node.log
 set daemon 60
 
 set httpd port 2812 and
@@ -20,3 +20,9 @@ check process queue with pidfile "/var/run/queue.pid"
         request /ping
         with timeout 5 seconds
         then restart
+
+{% for worker_index in range(1, max_kue_workers+1|default(1)) -%}
+check process kue_worker_{{worker_index}} with pidfile "/var/run/kue_worker_{{worker_index}}.pid"
+    start program = "/sbin/start worker ID={{ worker_index }}"
+    stop program  = "/sbin/stop worker ID={{ worker_index }}"
+{%- endfor %}

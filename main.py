@@ -46,6 +46,13 @@ class Engine(Application):
         data = yaml.load(File(args.config).read_all())
         actions.refresh(data)
 
+    @subcommand('validate',
+        help='Generates both the projects and validates the stack.')
+    @store('-c', '--config', default='data.yaml', help="Config file")
+    def validate(self, args):
+        data = yaml.load(File(args.config).read_all())
+        actions.validate(data)        
+
 
 def main():
     """Main"""

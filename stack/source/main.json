@@ -247,6 +247,12 @@
                   "owner"  : "root",
                   "group"  : "root"
                 },
+                "/etc/init/worker.conf" : {
+                  "content" : {{ contents('main/upstart/worker.conf')|indent(20) }},
+                  "mode"   : "000700",
+                  "owner"  : "root",
+                  "group"  : "root"
+                },
                 "/etc/monit/monitrc" : {
                   "content" : {{ contents('main/monit/monitrc')|indent(20) }},
                   "mode"   : "000700",

@@ -15,3 +15,6 @@ def all(data):
 
 def refresh(data):
     builder.publish(data, push_www=False, push_app=False)
+
+def validate(data):
+    builder.validate(data)
