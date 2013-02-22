@@ -108,16 +108,18 @@
       "Properties" : {
         "Path": "/",
         "Policies": [{
-          "PolicyName": "root",
-          "PolicyDocument": { "Statement":[{
-            "Effect": "Allow",
-            "Action": [
-              "cloudformation:DescribeStackResource",
-              "sqs:ReceiveMessage",
-              "sqs:DeleteMessage",
-              "s3:*"
-            ],
-            "Resource": "*"
+          "PolicyName": "AppUserAccessPolicy",
+          "PolicyDocument": { 
+            "Statement":[{
+              "Sid": "Access2555aa915b0a4c119e026f00f48b07ef",
+              "Effect": "Allow",
+              "Action": [
+                "cloudformation:DescribeStackResource",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "s3:*"
+              ],
+              "Resource": "*"
           }]}
         }]
       }
@@ -126,7 +128,7 @@
     "AppUserKeys" : {
       "Type" : "AWS::IAM::AccessKey",
       "Properties" : {
-        "UserName" : {"Ref": "AppUser"}
+        "UserName" : { "Ref": "AppUser" }
       }
     },
 
