@@ -121,7 +121,6 @@ def publish(data, push_www=True, push_app=False):
     config['data'] = data
     stack.publish_stack(config,
                         params=params,
-                        debug=True,
                         wait=True)
 
 def validate(data):

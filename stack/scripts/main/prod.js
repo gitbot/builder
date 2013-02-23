@@ -19,11 +19,6 @@ module.exports  = {
         port: '3000',
         url: 'http://api.{ "Ref": "Domain" }'
     },
-    queue: {
-        ip: '127.0.0.1',
-        port: '3001',
-        url: 'http://kue.{ "Ref": "Domain" }'
-    },
     socket: {
         origins: '*:*, localhost:8181, { "Ref": "Domain"}'
     },

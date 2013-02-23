@@ -109,7 +109,7 @@
         "Path": "/",
         "Policies": [{
           "PolicyName": "AppUserAccessPolicy",
-          "PolicyDocument": { 
+          "PolicyDocument": {
             "Statement":[{
               "Sid": "Access2555aa915b0a4c119e026f00f48b07ef",
               "Effect": "Allow",
@@ -237,24 +237,21 @@
                   "owner"  : "root",
                   "group"  : "root"
                 },
+
                 "/etc/init/app.conf" : {
                   "content" : {{ contents('main/upstart/app.conf')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",
                   "group"  : "root"
                 },
-                "/etc/init/queue.conf" : {
-                  "content" : {{ contents('main/upstart/kue.conf')|indent(20) }},
-                  "mode"   : "000700",
-                  "owner"  : "root",
-                  "group"  : "root"
-                },
+
                 "/etc/init/worker.conf" : {
                   "content" : {{ contents('main/upstart/worker.conf')|indent(20) }},
                   "mode"   : "000700",
                   "owner"  : "root",
                   "group"  : "root"
                 },
+
                 "/etc/monit/monitrc" : {
                   "content" : {{ contents('main/monit/monitrc')|indent(20) }},
                   "mode"   : "000700",

@@ -1,5 +1,4 @@
 context:
-    max_kue_workers: 1
     cfntools: 'https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz'
     instances:
         - t1.micro

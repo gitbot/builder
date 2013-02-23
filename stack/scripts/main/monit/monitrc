@@ -13,16 +13,7 @@ check process app with pidfile "/var/run/app.pid"
         with timeout 5 seconds
         then restart
 
-check process queue with pidfile "/var/run/queue.pid"
-    start program = "/sbin/start queue"
-    stop program  = "/sbin/stop queue"
-    if failed port 3001 protocol HTTP
-        request /ping
-        with timeout 5 seconds
-        then restart
-
-{% for worker_index in range(1, max_kue_workers+1|default(1)) -%}
-check process kue_worker_{{worker_index}} with pidfile "/var/run/kue_worker_{{worker_index}}.pid"
-    start program = "/sbin/start worker ID={{ worker_index }}"
-    stop program  = "/sbin/stop worker ID={{ worker_index }}"
+check process worker with pidfile "/var/run/worker.pid"
+    start program = "/sbin/start worker"
+    stop program  = "/sbin/stop worker"
 {%- endfor %}
