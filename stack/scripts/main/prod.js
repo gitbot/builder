@@ -10,10 +10,6 @@ module.exports  = {
         host: '{ "Fn::GetAtt": ["RedisServer", "Outputs.MasterIP"] }',
         port: '{ "Ref" : "RedisPort" }'
     },
-    q: {
-        host: '{ "Fn::GetAtt": ["RedisServer", "Outputs.MasterIP"] }',
-        port: '{ "Ref" : "RedisPort" }'
-    },
     api: {
         ip: '127.0.0.1',
         port: '3000',
