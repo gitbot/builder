@@ -16,4 +16,3 @@ check process app with pidfile "/var/run/app.pid"
 check process worker with pidfile "/var/run/worker.pid"
     start program = "/sbin/start worker"
     stop program  = "/sbin/stop worker"
-{%- endfor %}
