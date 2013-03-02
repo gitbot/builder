@@ -1,5 +1,5 @@
 #!/bin/bash -v
-cfn-init -s { "Ref" : "AWS::StackName" } \
+cfn-init -v -s { "Ref" : "AWS::StackName" } \
     -r AppServer \
     -c ALL  \
     --credential-file /etc/cfn/cfn-credentials \

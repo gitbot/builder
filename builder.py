@@ -11,7 +11,6 @@ import yaml
 def get_worker_outputs(data):
     result = None
     try:
-        worker_stack_name = data.worker_stack_name or 'gitbot-worker'
         region = data.region or 'us-east-1'
         root = Folder(data.root or '~')
         source = root.child_folder('src')
@@ -25,21 +24,23 @@ def get_worker_outputs(data):
         tree.clone(tip_only=True)
 
         #   2. Call gitbot.stack.publish with 'gitbot.yaml'
-        stack.publish_stack(source.child_file('gitbot.yaml'), wait=True)
+        worker_stack_name = stack.publish_stack(
+                                    source.child_file('gitbot.yaml'),
+                                    wait=True)
         result = stack.get_outputs(worker_stack_name, region)
     except Exception, e:
         print repr(e)
         raise
     finally:
         source.delete()
-        return result 
+        return result
 
 
 def check_revision_already_published(proj, bucket_name, tree):
     b = Bucket(bucket_name)
     if not b.connect():
         return None
-    
+
     sha = tree.get_revision_remote()
     key_folder = Folder(proj).child_folder(tree.branch_name)
     key_folder = key_folder.child_folder(sha)
@@ -56,7 +57,7 @@ def __upload(proj, repo, branch, data, maker, force=True):
         dist = root.child_folder('dist')
         tree = Tree(source, repo=repo, branch=branch)
         key = None
-        if not force: 
+        if not force:
             key = check_revision_already_published(proj, data.bucket, tree)
 
         if not key:
@@ -121,6 +122,7 @@ def publish(data, push_www=True, push_app=False):
     config['data'] = data
     stack.publish_stack(config,
                         params=params,
+                        debug=True,
                         wait=True)
 
 def validate(data):

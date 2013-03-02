@@ -66,10 +66,10 @@ source_patterns: '*.json'
 output_dir: out
 search_paths: scripts
 publish:
-  bucket: gitbot_stack
+  bucket: gitbot-io-stack
   path: cfn/v1.0
   main: main.json
-  stack_name: gitbot-stack
+  stack_name: gitbot-io-stack
   params:
     RedisStackURL: '{{ url_for("redis.json") }}'
     KeyName: '{{ data.app_key }}'
