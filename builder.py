@@ -1,4 +1,3 @@
-from boto.exception import BotoServerError
 from fswrap import File, Folder
 from gitbot import stack
 from gitbot.conf import ConfigDict
