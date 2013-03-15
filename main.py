@@ -1,5 +1,4 @@
 import actions
-from version import __version__
 from commando import Application, command, store, subcommand, true, version
 from fswrap import File
 from gitbot.util import getLoggerWithConsoleHandler
@@ -14,7 +13,7 @@ class Engine(Application):
     @command(description='gitbot-builder - Create or update a gitbot stack',
         epilog='Use %(prog)s {command} -h to get help on individual commands')
     @true('-v', '--verbose', help="Show detailed information in console")
-    @version('--version', version='%(prog)s ' + __version__)
+    @version('--version', version='%(prog)s ' + '0.1')
     def main(self, args):
         pass
 
@@ -51,7 +50,7 @@ class Engine(Application):
     @store('-c', '--config', default='data.yaml', help="Config file")
     def validate(self, args):
         data = yaml.load(File(args.config).read_all())
-        actions.validate(data)        
+        actions.validate(data)
 
 
 def main():
