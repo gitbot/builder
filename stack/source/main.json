@@ -138,14 +138,37 @@
         "Comment" : "Install the app server",
         "AWS::CloudFormation::Init" : {
           "configSets" : {
-              "ALL": ["Repos", "System", "App", "Config", "Services"]
+              "ALL": [
+                "Update",
+                "System",
+                "NodeJSRepos",
+                "NodeJS",
+                "App",
+                "Config",
+                "Services"
+              ]
           },
-          "Repos" : {
+          "Update" : {
+            "commands" : {
+              "1-update" : {
+                "command" : "apt-get update"
+              }
+            }
+          },
+          "System" : {
             "packages" : {
               "apt" : {
-                "python-software-properties" : []
+                "python-software-properties" : [],
+                "build-essential" : [],
+                "git" : [],
+                "libyaml-dev": [],
+                "haproxy" : [],
+                "nginx-light" : [],
+                "monit": []
               }
-            },
+            }
+          },
+          "NodeJSRepos" : {
             "commands" : {
               "1-nodejs" : {
                 "command" : "add-apt-repository -y ppa:chris-lea/node.js"
@@ -155,20 +178,13 @@
               }
             }
           },
-          "System" : {
+          "NodeJS" : {
             "packages" : {
               "apt" : {
-                "build-essential" : [],
-                "git" : [],
-                "libyaml-dev": [],
-                "nodejs" : [],
-                "haproxy" : [],
-                "nginx-light" : [],
-                "monit": []
+                "nodejs" : []
               }
             }
           },
-
           "App" : {
             "sources" : {
               "/home/ubuntu/web": { "Ref" : "WebSource" },
