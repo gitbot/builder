@@ -1,6 +1,6 @@
 from fswrap import File, Folder
 from gitbot import stack
-from gitbot.conf import ConfigDict
+from commando.conf import ConfigDict
 from gitbot.lib import hyde
 from gitbot.lib.s3 import Bucket
 from gitbot.lib.git import Tree

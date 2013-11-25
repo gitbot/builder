@@ -1,7 +1,7 @@
 import actions
 from commando import Application, command, store, subcommand, true, version
 from fswrap import File
-from gitbot.util import getLoggerWithConsoleHandler
+from commando.util import getLoggerWithConsoleHandler
 import yaml
 
 
